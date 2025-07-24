@@ -45,3 +45,4 @@ firebase-debug.log
 firestore-debug.log
 
 .code2context/
+backend/tiny-imagenet-cache/
