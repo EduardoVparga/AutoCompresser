@@ -89,6 +89,29 @@ export default function Home() {
             <div className="grid w-full grid-cols-1 md:grid-cols-2 gap-8 mt-6">
               <div className="flex flex-col items-center gap-4">
                 <h3 className="text-2xl font-semibold text-foreground tracking-tight">
+                  Original Image
+                </h3>
+                <div className="w-full aspect-video rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted/30 p-2 overflow-hidden shadow-inner">
+                  {originalImage ? (
+                    <Image
+                      src={originalImage}
+                      alt="Original image"
+                      width={500}
+                      height={281}
+                      className="rounded-lg object-contain w-full h-full"
+                      data-ai-hint="photo upload"
+                    />
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      <Upload className="mx-auto h-12 w-12 opacity-50 mb-2" />
+                      <p>Upload an image to get started</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            
+              <div className="flex flex-col items-center gap-4">
+                <h3 className="text-2xl font-semibold text-foreground tracking-tight">
                   Processed Image
                 </h3>
                 <div className="w-full aspect-video rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted/30 p-2 overflow-hidden shadow-inner">
@@ -107,29 +130,6 @@ export default function Home() {
                     <div className="text-center text-muted-foreground">
                       <Wand2 className="mx-auto h-12 w-12 opacity-50 mb-2" />
                       <p>Your processed image will appear here</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center gap-4">
-                <h3 className="text-2xl font-semibold text-foreground tracking-tight">
-                  Original Image
-                </h3>
-                <div className="w-full aspect-video rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted/30 p-2 overflow-hidden shadow-inner">
-                  {originalImage ? (
-                    <Image
-                      src={originalImage}
-                      alt="Original image"
-                      width={500}
-                      height={281}
-                      className="rounded-lg object-contain w-full h-full"
-                      data-ai-hint="photo upload"
-                    />
-                  ) : (
-                    <div className="text-center text-muted-foreground">
-                      <Upload className="mx-auto h-12 w-12 opacity-50 mb-2" />
-                      <p>Upload an image to get started</p>
                     </div>
                   )}
                 </div>
