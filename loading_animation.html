@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animación de Carga con Transformación Secuencial</title>
+    <style>
+        /* Estilos generales */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f1f3;
+            font-family: sans-serif;
+            color: #333;
+            overflow-x: hidden; /* Evita la barra de scroll horizontal */
+        }
+
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        /* Contenedor con la disposición final LADO A LADO */
+        .loader-stages {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            height: 80px; /* Altura fija para evitar saltos de layout */
+            padding: 0 20px; /* Espacio para que la animación no se corte en los bordes */
+        }
+        
+        /* Cada etapa empieza invisible, pero ocupando su espacio para ser medida */
+        .stage-element {
+            visibility: hidden;
+            opacity: 0;
+            /* Variables CSS que JavaScript rellenará con la posición de inicio */
+            --start-x: 0px;
+            --start-y: 0px;
+        }
+
+        /* --- CLASE Y ANIMACIÓN CLAVE --- */
+        
+        /* Clase que activa la animación */
+        .stage-element.is-visible {
+            visibility: visible;
+            /* Aplicamos la animación principal */
+            animation: transform-from-previous 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+        }
+        
+        /* La animación que mueve el elemento desde la posición del anterior a la suya */
+        @keyframes transform-from-previous {
+            from {
+                opacity: 0;
+                /* Inicia en la posición calculada por JS, pequeño y girado */
+                transform: translate(var(--start-x), var(--start-y)) scale(0.3) rotate(-270deg);
+            }
+            to {
+                opacity: 1;
+                /* Termina en su posición natural (0,0), a tamaño completo y sin rotación */
+                transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+        }
+
+        /* --- CASO ESPECIAL: EL PRIMER ELEMENTO --- */
+
+        /* El primer elemento no tiene un "anterior", así que solo aparece */
+        #stage-group-1.is-visible {
+            animation: fade-in-pop 0.6s ease-out forwards;
+        }
+
+        @keyframes fade-in-pop {
+            from { opacity: 0; transform: scale(0.7); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        /* Estilos de las cajas y rejillas (sin cambios) */
+        .box { width: 20px; height: 20px; border: 2px solid #555; border-radius: 6px; }
+        .grid { display: grid; gap: 5px; }
+        .grid-3x3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-2x2 { grid-template-columns: repeat(2, 1fr); }
+
+        .loader-status { font-size: 1.2rem; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <div class="loader-container">
+        <!-- Estructura HTML original lado a lado -->
+        <div class="loader-stages">
+            <div class="stage-element grid grid-3x3" id="stage-group-1">
+                <div class="box"></div><div class="box"></div><div class="box"></div>
+                <div class="box"></div><div class="box"></div><div class="box"></div>
+                <div class="box"></div><div class="box"></div><div class="box"></div>
+            </div>
+            <div class="stage-element grid grid-2x2" id="stage-group-2">
+                <div class="box"></div><div class="box"></div>
+                <div class="box"></div><div class="box"></div>
+            </div>
+            <div class="stage-element" id="stage-group-3">
+                <div class="box"></div>
+            </div>
+            <div class="stage-element grid grid-2x2" id="stage-group-4">
+                <div class="box"></div><div class="box"></div>
+                <div class="box"></div><div class="box"></div>
+            </div>
+            <div class="stage-element grid grid-3x3" id="stage-group-5">
+                <div class="box"></div><div class="box"></div><div class="box"></div>
+                <div class="box"></div><div class="box"></div><div class="box"></div>
+                <div class="box"></div><div class="box"></div><div class="box"></div>
+            </div>
+        </div>
+        <div class="loader-status">
+            <span id="loader-text">Cargando...</span>
+            <span id="loader-progress">0%</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const stageGroups = document.querySelectorAll('.stage-element');
+            const loaderText = document.getElementById('loader-text');
+            const loaderProgress = document.getElementById('loader-progress');
+            
+            const totalStages = stageGroups.length;
+
+            // FASE 1: Medir y preparar las posiciones para la animación
+            const prepareAnimations = () => {
+                // Empezamos desde el segundo elemento, que es el primero que se anima desde otro
+                for (let i = 1; i < stageGroups.length; i++) {
+                    const currentEl = stageGroups[i];
+                    const prevEl = stageGroups[i - 1];
+
+                    const currentRect = currentEl.getBoundingClientRect();
+                    const prevRect = prevEl.getBoundingClientRect();
+
+                    // Calculamos el desplazamiento para que el centro de 'currentEl' empiece
+                    // en el centro de 'prevEl'.
+                    const offsetX = prevRect.left - currentRect.left + (prevRect.width - currentRect.width) / 2;
+                    const offsetY = prevRect.top - currentRect.top + (prevRect.height - currentRect.height) / 2;
+                    
+                    // Guardamos el resultado en las variables CSS del elemento actual.
+                    currentEl.style.setProperty('--start-x', `${offsetX}px`);
+                    currentEl.style.setProperty('--start-y', `${offsetY}px`);
+                }
+            };
+
+            // FASE 2: Ejecutar la secuencia de animación
+            const runLoader = () => {
+                let currentStageIndex = 0;
+
+                const showNextStage = () => {
+                    if (currentStageIndex >= totalStages) {
+                        clearInterval(loaderInterval);
+                        return;
+                    }
+
+                    // Hacemos visible el elemento actual, lo que dispara su animación
+                    stageGroups[currentStageIndex].classList.add('is-visible');
+                    
+                    // Actualizamos el progreso
+                    const percentage = Math.round(((currentStageIndex + 1) / totalStages) * 100);
+                    loaderProgress.textContent = `${percentage}%`;
+
+                    if (currentStageIndex === totalStages - 1) {
+                        loaderText.textContent = '¡Carga Completa!';
+                    }
+                    
+                    currentStageIndex++;
+                };
+
+                const loaderInterval = setInterval(showNextStage, 1000);
+                // La primera etapa se muestra inmediatamente al empezar
+                showNextStage(); 
+            };
+            
+            // Esperamos un instante para asegurar que el layout esté 100% estable antes de medir
+            setTimeout(() => {
+                prepareAnimations();
+                runLoader();
+            }, 100); 
+        });
+    </script>
+</body>
+</html>
