@@ -1,0 +1,72 @@
+/* Estilos generales */
+.loaderContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Centra verticalmente */
+    gap: 20px;
+    width: 100%;
+    height: 100%;
+    font-family: sans-serif;
+}
+
+/* Contenedor con la disposición final LADO A LADO */
+.loaderStages {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    height: 80px; /* Altura fija para evitar saltos de layout */
+    padding: 0 20px;
+}
+
+/* Cada etapa empieza invisible, pero ocupando su espacio */
+.stageElement {
+    visibility: hidden;
+    opacity: 0;
+    --start-x: 0px;
+    --start-y: 0px;
+}
+
+/* Clase que activa la animación */
+.stageElement.isVisible {
+    visibility: visible;
+    animation: transform-from-previous 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+}
+
+@keyframes transform-from-previous {
+    from {
+        opacity: 0;
+        transform: translate(var(--start-x), var(--start-y)) scale(0.3) rotate(-270deg);
+    }
+    to {
+        opacity: 1;
+        transform: translate(0, 0) scale(1) rotate(0deg);
+    }
+}
+
+/* --- CASO ESPECIAL: EL PRIMER ELEMENTO --- */
+.firstStage.isVisible {
+    animation: fade-in-pop 0.6s ease-out forwards;
+}
+
+@keyframes fade-in-pop {
+    from { opacity: 0; transform: scale(0.7); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* Estilos de las cajas y rejillas */
+.box { 
+    width: 20px; 
+    height: 20px; 
+    border: 2px solid hsl(var(--foreground)); 
+    border-radius: 6px; 
+}
+.grid { display: grid; gap: 5px; }
+.grid3x3 { grid-template-columns: repeat(3, 1fr); }
+.grid2x2 { grid-template-columns: repeat(2, 1fr); }
+
+.loaderStatus { 
+    font-size: 1.2rem; 
+    font-weight: bold; 
+    color: hsl(var(--foreground));
+}
